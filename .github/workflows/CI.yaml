@@ -32,7 +32,11 @@ jobs:
         activate-environment: test
         run-post: false
     - name: Build MWE
+      shell: bash -el {0}
       run: |
+         set -x
+         echo CONDA_PREFIX=$CONDA_PREFIX
+         which python
          python -c "import sys; print('interpreter sys.path:', sys.path)"
-         clang++ -I${CONDA_PREFIX}/include/python3.10 -L${CONDA_PREFIX}/lib mwe.cpp -o mwe -lpython${{ matrix.python-version }} -Wl,-rpath,${CONDA_PREFIX}/lib
+         clang++ -I${CONDA_PREFIX}/include/python${{ matrix.python-version }} -L${CONDA_PREFIX}/lib mwe.cpp -o mwe -lpython${{ matrix.python-version }} -Wl,-rpath,${CONDA_PREFIX}/lib
          ./mwe
