@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    # Build when main or testing is pushed to
+    branches:
+      - main
+  pull_request:
+    # Build when a pull request targets main
+    branches:
+      - main
+
+jobs:
+  macos-multiple-pythons:
+    name: macOS with Python ${{ matrix.python-version }}
+    runs-on: macos-11
+    timeout-minutes: 90
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v3
+      name: Checkout the repository
+    - name: Set up conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: ${{ matrix.python-version }}
+        miniforge-variant: Mambaforge
+        miniforge-version: latest
+        activate-environment: test
+        run-post: false
+    - name: Build MWE
+      run: |
+         python -c "import sys; print('interpreter sys.path:', sys.path)"
+         clang++ -I${CONDA_PREFIX}/include/python3.10 -L${CONDA_PREFIX}/lib mwe.cpp -o mwe -lpython${{ matrix.python-version }} -Wl,-rpath,${CONDA_PREFIX}/lib
+         ./mwe
